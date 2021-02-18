@@ -1,42 +1,63 @@
-import * as React from 'react';
-import { Text, View, StyleSheet, Button } from 'react-native';
-import { useScreens } from 'react-native-screens';
-import {
-  createAppContainer,
-  createStackNavigator,
-  createBottomTabNavigator,
-} from 'react-navigation';
+import React, { useEffect } from 'react';
+import { View, Button } from 'react-native';
+import { enableScreens } from 'react-native-screens';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 
-useScreens();
+enableScreens();
 
-class DetailsScreen extends React.Component {
-  static navigationOptions = ({ navigation }) => {
-    return {
-      title: 'Details screen #' + navigation.getParam('index', '0'),
-    };
+const DetailsScreen = ({ navigation, route }) => {
+  useEffect(() => {
+    navigation.setOptions({
+      title: `Details screen #${getIndex}`,
+    });
+  }, [navigation]);
+
+  const getIndex = () => {
+    return route.params && route.params.index ? route.params.index : 0;
   };
-  render() {
-    const index = this.props.navigation.getParam('index', 0);
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Button
-          title={'More details ' + index}
-          onPress={() =>
-            this.props.navigation.push('Details', {
-              index: index + 1,
-            })
-          }
-        />
-      </View>
-    );
-  }
-}
 
-const Scenes = {
-  A: createStackNavigator({ DetailsScreen }),
-  B: createStackNavigator({ DetailsScreen }),
-  C: createStackNavigator({ DetailsScreen }),
-  D: createStackNavigator({ DetailsScreen }),
+  const index = getIndex();
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <Button
+        title={`More details ${index}`}
+        onPress={() =>
+          navigation.push('Details', {
+            index: index + 1,
+          })
+        }
+      />
+    </View>
+  );
 };
 
-export default createAppContainer(createBottomTabNavigator(Scenes, {}));
+const createStack = () => {
+  const Stack = createStackNavigator();
+
+  const makeStack = () => (
+    <Stack.Navigator>
+      <Stack.Screen name="Details" component={DetailsScreen} />
+    </Stack.Navigator>
+  );
+
+  return makeStack;
+};
+
+const AStack = createStack();
+const BStack = createStack();
+const CStack = createStack();
+const DStack = createStack();
+
+const Tab = createBottomTabNavigator();
+
+const NavigationTabsAndStack = () => (
+  <Tab.Navigator>
+    <Tab.Screen name="A" component={AStack} />
+    <Tab.Screen name="B" component={BStack} />
+    <Tab.Screen name="C" component={CStack} />
+    <Tab.Screen name="D" component={DStack} />
+  </Tab.Navigator>
+);
+
+export default NavigationTabsAndStack;

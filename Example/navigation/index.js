@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   Button,
@@ -6,15 +6,9 @@ import {
   TextInput,
   Animated,
   Image,
-  requireNativeComponent,
 } from 'react-native';
-import { createStackNavigator, createAppContainer } from 'react-navigation';
-// import { createStackNavigator } from './react-navigation/react-navigation';
+import { createStackNavigator } from '@react-navigation/stack';
 
-export const LifecycleAwareView = requireNativeComponent(
-  'RNSLifecycleAwareView',
-  null
-);
 
 const IMGS = [
   require('./img/dawid-zawila-628275-unsplash.jpg'),
@@ -36,73 +30,75 @@ const Background = ({ index }) => (
   />
 );
 
-class DetailsScreen extends React.Component {
-  static navigationOptions = ({ navigation }) => {
-    return {
-      title: 'Details screen #' + navigation.getParam('index', '0'),
-    };
-  };
-  animvalue = new Animated.Value(0);
-  rotation = this.animvalue.interpolate({
+const DetailsScreen = ({ navigation, route }) => {
+  const animvalue = new Animated.Value(0);
+  const rotation = animvalue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
-  state = { count: 1, text: '' };
-  componentDidMount() {
+  const [count, setCount] = useState(1);
+  const [text, setText] = useState('');
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: `Details screen #${getIndex()}`,
+    });
     Animated.loop(
-      Animated.timing(this.animvalue, {
+      Animated.timing(animvalue, {
         toValue: 1,
         duration: 1000,
         useNativeDriver: false,
       })
     ).start();
-    setInterval(() => this.setState({ count: this.state.count + 1 }), 500);
+    setInterval(() => setCount(count + 1 ), 1000);
+  },[navigation]); 
+
+  const getIndex = () => {
+    return route.params && route.params.index ? route.params.index : 0;
   }
-  render() {
-    const index = this.props.navigation.getParam('index', 0);
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Background index={index} />
-        <Button
-          title="More details"
-          onPress={() =>
-            this.props.navigation.push('Details', {
-              index: index + 1,
-            })
-          }
-        />
-        <TextInput
-          placeholder="Hello"
-          style={styles.textInput}
-          onChangeText={text => this.setState({ text })}
-          text={this.state.text}
-        />
-        <Animated.View
-          style={{
-            transform: [
-              {
-                rotate: this.rotation,
-              },
-            ],
-            marginTop: 20,
-            borderColor: 'blue',
-            borderWidth: 3,
-            width: 20,
-            height: 20,
-          }}
-        />
-      </View>
-    );
-  }
+
+  const index = getIndex();
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <Background index={index} />
+      <Button
+        title="More details"
+        onPress={() =>
+          navigation.push('Details', {
+          index: index + 1,
+          })
+        }
+      />
+      <TextInput
+        placeholder="Hello"
+        style={styles.textInput}
+        onChangeText={(text) => setText(text)}
+        text={text}
+      />
+      <Animated.View
+        style={{
+          transform: [
+            {
+            rotate: rotation,
+          },
+        ],
+        marginTop: 20,
+        borderColor: 'blue',
+        borderWidth: 3,
+        width: 20,
+        height: 20,
+      }}
+      />
+    </View>
+  );
 }
 
-const App = createStackNavigator(
-  {
-    Details: DetailsScreen,
-  },
-  {
-    initialRouteName: 'Details',
-  }
+const Stack = createStackNavigator();
+
+const App = () => (
+  <Stack.Navigator>
+    <Stack.Screen name="Details" component={DetailsScreen} />
+  </Stack.Navigator>
 );
 
 const styles = StyleSheet.create({
@@ -116,4 +112,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default createAppContainer(App);
+export default App;
